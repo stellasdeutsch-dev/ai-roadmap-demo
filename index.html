@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Roadmap — офлайн-демо плана поступления</title>
+<meta name="description" content="Демонстрация интерактивного плана поступления в вуз: анкета, пошаговый таймлайн и чат-ассистент. Работает полностью в браузере, без сервера и без учётной записи.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Перейти к содержимому</a>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M4 18 9 7l4 7 3-4 4 8" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span>AI&nbsp;Roadmap</span>
+    </div>
+
+    <div class="topbar-meta">
+      <span class="badge">Офлайн-демо — работает только в браузере</span>
+      <button class="btn btn-ghost btn-sm" id="resetBtn" type="button" hidden>Начать заново</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============================ ЭКРАН 1: АНКЕТА ==================== -->
+  <section class="screen" id="screenIntake">
+    <div class="intake">
+      <div class="intake-head">
+        <h1>Персональный план поступления</h1>
+        <p class="lede">
+          Расскажите о себе и о программе — соберу пошаговый план с дедлайнами
+          и чек-листами. Это офлайн-демо: план строится по шаблону прямо
+          в вашем браузере, без сервера, без обращения к внешним сайтам
+          и без регистрации. Ничего никуда не отправляется.
+        </p>
+        <div class="quickfill">
+          <button class="btn btn-outline btn-sm" type="button" id="fillSampleBtn">
+            Заполнить примером
+          </button>
+          <span class="hint">Чтобы посмотреть план сразу, без ввода своих данных</span>
+        </div>
+      </div>
+
+      <form id="profileForm" novalidate>
+
+        <fieldset class="card">
+          <legend>Кто вы</legend>
+
+          <div class="grid-2">
+            <label class="field">
+              <span class="label">Имя <b aria-hidden="true">*</b></span>
+              <input name="name" required autocomplete="given-name" placeholder="Например, Аружан">
+            </label>
+
+            <label class="field">
+              <span class="label">Гражданство</span>
+              <input name="citizenship" placeholder="Казахстан">
+            </label>
+
+            <label class="field">
+              <span class="label">Текущий уровень образования</span>
+              <select name="educationLevel">
+                <option value="школа">Школа</option>
+                <option value="колледж">Колледж</option>
+                <option value="бакалавриат" selected>Бакалавриат</option>
+                <option value="магистратура">Магистратура</option>
+                <option value="работаю">Уже работаю</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="label">Специальность</span>
+              <input name="specialty" placeholder="Информационные системы">
+            </label>
+
+            <label class="field">
+              <span class="label">Город</span>
+              <input name="city" placeholder="Алматы">
+            </label>
+
+            <label class="field">
+              <span class="label">Страна проживания</span>
+              <input name="country" placeholder="Казахстан">
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>Куда поступаете</legend>
+
+          <div class="grid-2">
+            <label class="field">
+              <span class="label">Университет <b aria-hidden="true">*</b></span>
+              <input name="university" required placeholder="Название университета">
+            </label>
+
+            <label class="field">
+              <span class="label">Программа <b aria-hidden="true">*</b></span>
+              <input name="program" required placeholder="Название программы">
+            </label>
+
+            <label class="field">
+              <span class="label">Уровень программы</span>
+              <select name="degreeLevel">
+                <option value="бакалавриат">Бакалавриат</option>
+                <option value="магистратура" selected>Магистратура</option>
+                <option value="PhD">PhD</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="label">Планируемое начало учёбы</span>
+              <input name="intakeDate" type="month">
+            </label>
+          </div>
+
+          <div class="field">
+            <span class="label">Статус</span>
+            <div class="radio-row" role="radiogroup" aria-label="Статус поступления">
+              <label class="radio">
+                <input type="radio" name="offerStatus" value="received" checked>
+                <span>Offer получен</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="offerStatus" value="waiting">
+                <span>Жду ответа</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="offerStatus" value="planning">
+                <span>Только планирую</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field">
+            <span class="label">Финансирование обучения</span>
+            <div class="radio-row" role="radiogroup" aria-label="Источник финансирования">
+              <label class="radio">
+                <input type="radio" name="funding" value="self" checked>
+                <span>Самостоятельно</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="funding" value="scholarship">
+                <span>Стипендия или грант</span>
+              </label>
+            </div>
+            <span class="hint">При выборе стипендии в план добавится отдельный шаг с подачей документов в фонд</span>
+          </div>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>Дополнительный контекст <span class="optional">необязательно</span></legend>
+          <label class="field">
+            <span class="label">Что ещё важно учесть</span>
+            <textarea name="notes" rows="3"
+                      placeholder="Нужно общежитие, паспорт истекает в марте, есть аллергия…"></textarea>
+            <span class="hint">Это попадёт в план: жильё, свои дедлайны, особые условия</span>
+          </label>
+        </fieldset>
+
+        <div class="submit-row">
+          <span class="hint" style="margin:0">Все поля остаются только в вашем браузере (localStorage)</span>
+          <button class="btn btn-primary btn-lg" type="submit" id="submitBtn">
+            Построить план
+          </button>
+        </div>
+
+        <p class="form-error" id="formError" role="alert" hidden></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============================ ЭКРАН 2: ЗАГРУЗКА ================== -->
+  <section class="screen" id="screenLoading" hidden>
+    <div class="loading">
+      <ol class="steps-progress" id="loadingSteps">
+        <li data-step="build"><span class="dot"></span>Собираем план по вашим данным</li>
+        <li data-step="render"><span class="dot"></span>Готовим таймлайн</li>
+      </ol>
+      <p class="loading-note">Это офлайн-демо: план собирается по шаблону в браузере, без обращения к серверу.</p>
+    </div>
+  </section>
+
+  <!-- ============================ ЭКРАН 3: РОАДМАП =================== -->
+  <section class="screen workspace" id="screenRoadmap" hidden>
+
+    <div class="roadmap-col">
+      <div class="roadmap-head">
+        <div>
+          <h1 id="roadmapTitle"></h1>
+          <p class="summary" id="roadmapSummary"></p>
+        </div>
+        <span class="confidence" id="confidence"></span>
+      </div>
+
+      <div class="progress">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <span class="progress-label" id="progressLabel"></span>
+      </div>
+
+      <div class="filters" role="group" aria-label="Фильтр шагов">
+        <button class="chip is-active" data-filter="all" type="button">Все</button>
+        <button class="chip" data-filter="not_started" type="button">Не начато</button>
+        <button class="chip" data-filter="in_progress" type="button">В процессе</button>
+        <button class="chip" data-filter="done" type="button">Готово</button>
+      </div>
+
+      <ol class="timeline" id="timeline"></ol>
+
+      <section class="panel" id="openQuestionsPanel" hidden>
+        <h2>Что стоит уточнить</h2>
+        <ul id="openQuestions"></ul>
+      </section>
+
+      <section class="panel" id="contactsPanel" hidden>
+        <h2>Контакты</h2>
+        <ul id="contacts"></ul>
+      </section>
+    </div>
+
+    <!-- ------------------------------ ЧАТ ------------------------------ -->
+    <aside class="chat-col" aria-label="Чат с ассистентом">
+      <div class="chat-head">
+        <h2>Ассистент</h2>
+        <p id="chatContext"></p>
+      </div>
+
+      <div class="chat-log" id="chatLog" aria-live="polite"></div>
+
+      <div class="chat-suggestions" id="chatSuggestions">
+        <button type="button" class="chip chip-sm">Что делать, если не успею подать документы в срок?</button>
+        <button type="button" class="chip chip-sm">Объясни, зачем нужен первый шаг</button>
+        <button type="button" class="chip chip-sm">Какие документы нужны для визы?</button>
+      </div>
+
+      <form class="chat-form" id="chatForm">
+        <label class="sr-only" for="chatInput">Сообщение ассистенту</label>
+        <textarea id="chatInput" rows="1" placeholder="Спросите что угодно про ваш план…"></textarea>
+        <button class="btn btn-primary btn-icon" type="submit" id="chatSend" aria-label="Отправить">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 12h15m0 0-6-6m6 6-6 6" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </form>
+    </aside>
+  </section>
+</main>
+
+<script src="js/app.js" type="module"></script>
+</body>
+</html>

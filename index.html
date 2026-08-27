@@ -47,6 +47,7 @@
 
     <div class="topbar-meta">
       <span class="badge">Работает офлайн — без сервера и без аккаунта</span>
+      <button class="btn btn-ghost btn-sm no-print" id="calendarBtn" type="button" hidden>В календарь</button>
       <button class="btn btn-ghost btn-sm no-print" id="printBtn" type="button" hidden>Печать / PDF</button>
       <button class="btn btn-ghost btn-sm no-print" id="exportBtn" type="button" hidden>Скачать план</button>
       <button class="btn btn-ghost btn-sm no-print" id="resetBtn" type="button" hidden>Начать заново</button>
@@ -265,6 +266,11 @@
         <button class="chip" data-filter="done" type="button">Готово</button>
       </div>
 
+      <section class="panel focus-panel" id="focusPanel" hidden>
+        <h2>Что делать сейчас</h2>
+        <div id="focusBody"></div>
+      </section>
+
       <section class="panel notes-panel" id="notesPanel" hidden>
         <h2>Ваша заметка</h2>
         <p id="notesText"></p>
@@ -293,9 +299,10 @@
       <div class="chat-log" id="chatLog" aria-live="polite"></div>
 
       <div class="chat-suggestions" id="chatSuggestions">
-        <button type="button" class="chip chip-sm">Что делать, если не успею подать документы в срок?</button>
-        <button type="button" class="chip chip-sm">Объясни, зачем нужен первый шаг</button>
-        <button type="button" class="chip chip-sm">Какие документы нужны для визы?</button>
+        <button type="button" class="chip chip-sm">Что дальше?</button>
+        <button type="button" class="chip chip-sm">Сколько осталось?</button>
+        <button type="button" class="chip chip-sm">Когда виза?</button>
+        <button type="button" class="chip chip-sm">Зачем нужен апостиль?</button>
       </div>
 
       <form class="chat-form" id="chatForm">

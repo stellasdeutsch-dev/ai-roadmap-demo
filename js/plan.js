@@ -419,6 +419,52 @@ export function progressOf(roadmap) {
   };
 }
 
+/* ------------------------------------------------------------------ */
+/* Приоритеты — что делать прямо сейчас                                */
+/* ------------------------------------------------------------------ */
+
+/** Календарных суток от сегодня до даты; отрицательное — дата в прошлом. */
+export function daysFromToday(isoDate) {
+  const target = new Date(`${isoDate}T12:00:00`);
+  if (Number.isNaN(target.getTime())) return null;
+  const today = todayLocalNoon();
+  return Math.round((target - today) / 86400000);
+}
+
+/**
+ * Раскладывает незавершённые шаги по срочности. Плоский список из 11 шагов
+ * не отвечает на главный вопрос — «что делать сегодня»; здесь на него
+ * отвечаем явно.
+ *
+ * Шаги без даты не сваливаем в общую кучу: у них дедлайн задаёт вуз или фонд,
+ * и полезное действие по ним — не «сделать», а «выяснить срок». Поэтому они
+ * идут отдельной группой, а не изображают бессрочные.
+ */
+export function nextActions(roadmap, { soonWindowDays = 30, limit = 3 } = {}) {
+  const open = (roadmap?.steps ?? []).filter((s) => s.status !== 'done');
+
+  const dated = open
+    .filter((s) => s.deadline)
+    .map((s) => ({ step: s, days: daysFromToday(s.deadline) }))
+    .filter((e) => e.days !== null)
+    .sort((a, b) => a.days - b.days);
+
+  const future = dated.filter((e) => e.days >= 0);
+  const soon = future.filter((e) => e.days <= soonWindowDays).slice(0, limit);
+
+  return {
+    overdue: dated.filter((e) => e.days < 0),
+    soon,
+    // Если до ближайшего срока ещё месяцы, окно «скоро» пустое — но вопрос
+    // «что дальше» всё равно должен получать ответ, поэтому отдаём ближайший
+    // шаг отдельно. Не дублируем то, что уже попало в soon.
+    upcoming: soon.length ? [] : future.slice(0, 1),
+    undated: open.filter((s) => !s.deadline).slice(0, limit),
+    openCount: open.length,
+    allDone: open.length === 0 && (roadmap?.steps ?? []).length > 0,
+  };
+}
+
 /**
  * Применяет операции add_step / update_step / remove_step. Используется и
  * предложениями чата, и прямым редактированием пользователя (передайте

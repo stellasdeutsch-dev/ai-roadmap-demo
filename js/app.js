@@ -19,7 +19,7 @@ import * as store from './store.js';
 import { buildRoadmap, normalizeRoadmap, applyOperations } from './plan.js';
 import { initTimeline, createTimelineUiState, refreshRoadmap, initFilters } from './timeline.js';
 import { heuristicReply } from './assistant.js';
-import { exportPlan, importPlanFile, downloadRaw, printPlan } from './exporter.js';
+import { exportPlan, importPlanFile, downloadRaw, printPlan, exportCalendar } from './exporter.js';
 
 const state = {
   profile: null,
@@ -109,6 +109,7 @@ function showScreen(name) {
   $('#resetBtn').hidden = !onRoadmap;
   $('#exportBtn').hidden = !onRoadmap;
   $('#printBtn').hidden = !onRoadmap;
+  $('#calendarBtn').hidden = !onRoadmap;
 }
 
 function showRecovery(raw) {
@@ -145,9 +146,21 @@ const SAMPLE_PROFILE = {
   notes: 'Нужно общежитие, загранпаспорт истекает в мае.',
 };
 
+/**
+ * Дата начала учёбы для примера.
+ *
+ * Самый ранний шаг плана считается за ~7 месяцев до старта семестра, так что
+ * ближайший сентябрь не годится: пример открывался бы со сплошной красной
+ * простынёй «просрочено», как будто инструмент сломан. Берём ближайший
+ * сентябрь, до которого остаётся хотя бы MIN_RUNWAY_DAYS — тогда пример
+ * показывает план в работе, а не задним числом.
+ */
 function sampleIntakeMonth() {
+  const MIN_RUNWAY_DAYS = 240;
   const now = new Date();
-  const year = now.getMonth() >= 8 ? now.getFullYear() + 1 : now.getFullYear();
+  let year = now.getFullYear();
+  // сентябрь = месяц 8; полдень, чтобы перевод часов не сдвинул сутки
+  while ((new Date(year, 8, 1, 12) - now) / 86400000 < MIN_RUNWAY_DAYS) year += 1;
   return `${year}-09`;
 }
 
@@ -259,6 +272,16 @@ function initPrintExpand() {
 function initExportImport() {
   $('#exportBtn').addEventListener('click', () => exportPlan(state));
   $('#printBtn').addEventListener('click', () => printPlan());
+
+  $('#calendarBtn').addEventListener('click', () => {
+    const count = exportCalendar(state);
+    if (!count) {
+      showBanner(
+        'В плане нет ни одного шага с проставленной датой, поэтому в календарь нечего добавить. ' +
+          'Укажите дату начала учёбы при создании плана или проставьте сроки вручную кнопкой «Изменить» на карточке шага.'
+      );
+    }
+  });
 
   const fileInput = $('#importFile');
   $('#importBtn').addEventListener('click', () => fileInput.click());
@@ -449,6 +472,7 @@ function sendMessage(message) {
   const { text, proposal } = heuristicReply(message, {
     profileName: state.profile?.name,
     steps: state.roadmap?.steps ?? [],
+    roadmap: state.roadmap,
   });
 
   // Имитация потокового ответа — исключительно ради интерфейса.

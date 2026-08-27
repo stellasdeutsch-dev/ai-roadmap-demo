@@ -17,7 +17,15 @@
  */
 
 import { $, $$, esc, formatDate, daysUntil } from './utils.js';
-import { PHASE_LABELS, PHASES, STATUSES, applyOperations, syncStatusFromChecklist, progressOf } from './plan.js';
+import {
+  PHASE_LABELS,
+  PHASES,
+  STATUSES,
+  applyOperations,
+  syncStatusFromChecklist,
+  progressOf,
+  nextActions,
+} from './plan.js';
 
 const STATUS_LABELS = {
   not_started: 'Не начато',
@@ -37,6 +45,32 @@ export function createTimelineUiState() {
 
 export function initTimeline(state, onChange) {
   const list = $('#timeline');
+
+  // Переход из блока «что делать сейчас» к карточке шага. Под активным
+  // фильтром нужной карточки в DOM может не быть — тогда сначала снимаем
+  // фильтр, иначе ссылка вела бы в никуда.
+  $('#focusPanel').addEventListener('click', (e) => {
+    const link = e.target.closest('[data-focus-jump]');
+    if (!link) return;
+    e.preventDefault();
+
+    const stepId = link.dataset.focusJump;
+    if (state.filter !== 'all' && !list.querySelector(`#step-${CSS.escape(stepId)}`)) {
+      state.filter = 'all';
+      $$('.chip').forEach((chip) => {
+        const active = chip.dataset.filter === 'all';
+        chip.classList.toggle('is-active', active);
+        chip.setAttribute('aria-pressed', String(active));
+      });
+      renderTimeline(state);
+    }
+
+    const target = list.querySelector(`#step-${CSS.escape(stepId)}`);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('is-highlighted');
+    setTimeout(() => target.classList.remove('is-highlighted'), 1600);
+  });
 
   list.addEventListener('change', (e) => {
     const el = e.target;
@@ -100,6 +134,7 @@ export function initTimeline(state, onChange) {
 export function refreshRoadmap(state) {
   renderRoadmapHeader(state);
   renderProgress(state);
+  renderFocus(state);
   renderTimeline(state);
   renderPanels(state);
 }
@@ -201,6 +236,100 @@ export function renderProgress(state) {
   $('#progressLabel').textContent = `${p.done} из ${p.total} готово`;
 }
 
+/** Склонение существительного после числа: 1 день / 2 дня / 5 дней. */
+function plural(n, one, few, many) {
+  const abs = Math.abs(n) % 100;
+  const last = abs % 10;
+  if (abs > 10 && abs < 20) return many;
+  if (last > 1 && last < 5) return few;
+  if (last === 1) return one;
+  return many;
+}
+
+/** Блок «что делать сейчас» — просроченное, ближайшее и то, у чего надо
+ *  выяснить срок. Ссылки скроллят к соответствующей карточке таймлайна. */
+export function renderFocus(state) {
+  const panel = $('#focusPanel');
+  const body = $('#focusBody');
+  const { overdue, soon, upcoming, undated, allDone } = nextActions(state.roadmap);
+
+  if (allDone) {
+    body.innerHTML = '<p class="focus-done">Все шаги отмечены как выполненные. Удачи с учёбой!</p>';
+    panel.hidden = false;
+    return;
+  }
+
+  if (!overdue.length && !soon.length && !upcoming.length && !undated.length) {
+    panel.hidden = true;
+    return;
+  }
+
+  // Ссылка и подпись обёрнуты в .focus-body: маркер списка (.panel li::before)
+  // — это флекс-элемент, и без обёртки при переносе длинного заголовка он
+  // оставался висеть отдельной строкой над текстом.
+  const link = (step, meta, tone = '') =>
+    `<li class="focus-item${tone}">
+       <span class="focus-body">
+         <a href="#step-${esc(step.id)}" data-focus-jump="${esc(step.id)}">${esc(step.title)}</a>
+         <span class="focus-meta">${esc(meta)}</span>
+       </span>
+     </li>`;
+
+  const groups = [];
+
+  if (overdue.length) {
+    groups.push(
+      `<div class="focus-group">
+         <h3 class="focus-kicker is-overdue">Просрочено — ${overdue.length}</h3>
+         <ul>${overdue
+           .map((e) =>
+             link(e.step, `срок был ${formatDate(e.step.deadline)}, ${-e.days} ${plural(-e.days, 'день', 'дня', 'дней')} назад`, ' is-overdue')
+           )
+           .join('')}</ul>
+       </div>`
+    );
+  }
+
+  if (soon.length) {
+    groups.push(
+      `<div class="focus-group">
+         <h3 class="focus-kicker">Ближайшее</h3>
+         <ul>${soon
+           .map((e) =>
+             link(
+               e.step,
+               e.days === 0 ? 'сегодня' : `через ${e.days} ${plural(e.days, 'день', 'дня', 'дней')} — ${formatDate(e.step.deadline)}`
+             )
+           )
+           .join('')}</ul>
+       </div>`
+    );
+  }
+
+  if (upcoming.length) {
+    groups.push(
+      `<div class="focus-group">
+         <h3 class="focus-kicker">Дальше по плану</h3>
+         <ul>${upcoming
+           .map((e) => link(e.step, `${formatDate(e.step.deadline)} — через ${e.days} ${plural(e.days, 'день', 'дня', 'дней')}`))
+           .join('')}</ul>
+       </div>`
+    );
+  }
+
+  if (undated.length) {
+    groups.push(
+      `<div class="focus-group">
+         <h3 class="focus-kicker">Нужно выяснить срок</h3>
+         <ul>${undated.map((s) => link(s, s.deadlineNote || 'дедлайн задаёт вуз или фонд')).join('')}</ul>
+       </div>`
+    );
+  }
+
+  body.innerHTML = groups.join('');
+  panel.hidden = false;
+}
+
 /** Что сейчас в фокусе внутри таймлайна — чтобы вернуть фокус туда же
  *  после перерисовки innerHTML (иначе клавиатурная навигация и скринридер
  *  теряют место при каждом клике по чекбоксу или смене статуса). */
@@ -275,7 +404,7 @@ function stepMarkup(step) {
     : '';
 
   return `
-    <li class="tl-item" data-status="${step.status}" data-step="${esc(step.id)}">
+    <li class="tl-item" id="step-${esc(step.id)}" data-status="${step.status}" data-step="${esc(step.id)}">
       <span class="tl-marker" aria-hidden="true">${step.status === 'done' ? '✓' : step.order}</span>
       <div class="tl-card">
         <div class="tl-top">

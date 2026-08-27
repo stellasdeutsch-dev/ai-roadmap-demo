@@ -499,6 +499,32 @@ select{appearance:none;
 .tl-edit-form .field{margin-bottom:0}
 .tl-add-row{list-style:none;margin:12px 0 0}
 
+/* ---------------------------------------------------------------- что делать сейчас */
+.focus-panel{border-color:var(--line-strong)}
+.focus-group + .focus-group{margin-top:16px}
+.focus-kicker{
+  margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-500);
+}
+.focus-kicker.is-overdue{color:var(--stop-700)}
+.focus-panel ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.focus-item{align-items:flex-start}
+.focus-body{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;min-width:0}
+.focus-item a{
+  color:var(--ink-900);font-weight:600;font-size:14px;
+  text-decoration:none;border-bottom:1px solid var(--brand-100);
+}
+.focus-item a:hover{color:var(--brand-700);border-bottom-color:currentColor}
+.focus-item.is-overdue a{color:var(--stop-700)}
+.focus-meta{font-size:13px;color:var(--ink-500)}
+.focus-done{margin:0;font-size:14px;color:var(--ok-700)}
+
+/* подсветка карточки, к которой только что перешли из блока приоритетов */
+.tl-item.is-highlighted .tl-card{
+  box-shadow:0 0 0 2px var(--brand);
+  transition:box-shadow var(--dur) ease;
+}
+
 /* ---------------------------------------------------------------- заметка пользователя */
 .notes-panel{background:var(--brand-050);border-color:var(--brand-100)}
 .notes-panel h2{color:var(--brand-700)}

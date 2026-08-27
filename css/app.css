@@ -470,6 +470,60 @@ select{appearance:none;
   border-radius:10px;resize:none;
 }
 
+/* ---------------------------------------------------------------- баннер */
+.global-banner{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:11px 20px;background:var(--warn-050);color:var(--warn-700);
+  border-bottom:1px solid var(--line);font-size:13.5px;
+}
+.global-banner p{flex:1;margin:0;max-width:var(--measure)}
+.banner-close{
+  flex-shrink:0;background:none;border:0;color:inherit;font-size:18px;line-height:1;
+  cursor:pointer;padding:2px 4px;border-radius:6px;
+}
+.banner-close:hover{background:rgba(0,0,0,.06)}
+
+/* ---------------------------------------------------------------- чек-лист: интерактивные пункты */
+.check-item{display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:13.5px;color:var(--ink-600)}
+.check-item input{accent-color:var(--brand);width:16px;height:16px;margin-top:1px;flex-shrink:0}
+.check-item span.is-done{color:var(--ink-500);text-decoration:line-through;text-decoration-color:var(--ink-400)}
+
+.tag.custom{background:var(--brand-050);color:var(--brand-700)}
+
+/* ---------------------------------------------------------------- редактирование и добавление шага */
+.tl-actions{display:flex;gap:8px;margin-top:13px}
+.btn-danger{color:var(--stop-700)}
+.btn-danger:hover{background:var(--stop-050)}
+
+.tl-edit-form{display:flex;flex-direction:column;gap:12px}
+.tl-edit-form .field{margin-bottom:0}
+.tl-add-row{list-style:none;margin:12px 0 0}
+
+/* ---------------------------------------------------------------- заметка пользователя */
+.notes-panel{background:var(--brand-050);border-color:var(--brand-100)}
+.notes-panel h2{color:var(--brand-700)}
+.notes-panel p{color:var(--ink-700);font-size:14px;max-width:var(--measure)}
+
+/* карточка предложения, ставшая неактуальной после продолжения разговора */
+.proposal.is-stale{opacity:.55}
+.proposal-stale-note{font-size:12px;color:var(--ink-500);margin-top:8px}
+
+/* ---------------------------------------------------------------- печать */
+/* .tl-why — это <details>: видимость его содержимого управляется атрибутом
+   open, а не CSS display, и не переопределяется стилями надёжно во всех
+   браузерах. Раскрытие перед печатью делает JS (beforeprint в app.js). */
+@media print{
+  .no-print,.topbar,.global-banner,.quickfill,.filters,.tl-actions,.tl-add-row,.status-select{
+    display:none !important;
+  }
+  body{background:#fff}
+  .screen,.workspace{max-width:none;padding:0;display:block}
+  .chat-col{display:none}
+  .tl-card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+  .tl-item{break-inside:avoid}
+  .tl-why summary{display:none}
+}
+
 /* ---------------------------------------------------------------- мобильные */
 @media (max-width:720px){
   .screen{padding:18px 14px 48px}
@@ -477,10 +531,20 @@ select{appearance:none;
   .intake-head h1{font-size:25px}
   .roadmap-head h1{font-size:21px}
 
-  /* шапка: длинный бейдж режима не должен выдавливать кнопку за экран */
+  /* шапка: бейдж и три кнопки (печать/скачать/заново) не помещаются в
+     одну строку на телефоне — даём им уехать в горизонтальный скролл
+     вместо того чтобы выдавливать ширину страницы, как уже сделано для
+     .filters ниже. */
   .topbar-inner{padding-inline:14px;gap:10px}
-  .topbar-meta{gap:8px;min-width:0}
+  .topbar-meta{
+    gap:8px;min-width:0;flex:1 1 auto;
+    flex-wrap:nowrap;overflow-x:auto;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  }
+  .topbar-meta::-webkit-scrollbar{display:none}
+  .topbar-meta .btn{flex:0 0 auto;padding-inline:12px;font-size:13px;min-height:36px}
   .badge{
+    flex:0 0 auto;
     min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     max-width:38vw;
   }

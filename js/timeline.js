@@ -56,11 +56,15 @@ export function initTimeline(state, onChange) {
 
     const stepId = link.dataset.focusJump;
     if (state.filter !== 'all' && !list.querySelector(`#step-${CSS.escape(stepId)}`)) {
+      // Только чипы фильтра: '.chip' поймал бы и подсказки чата (.chip.chip-sm).
+      // Состояние объявляется через aria-checked — группа размечена как
+      // radiogroup в initFilters, и aria-pressed здесь рассинхронизировал бы
+      // то, что видит глазами зрячий, с тем, что слышит скринридер.
       state.filter = 'all';
-      $$('.chip').forEach((chip) => {
+      $$('.filters .chip').forEach((chip) => {
         const active = chip.dataset.filter === 'all';
         chip.classList.toggle('is-active', active);
-        chip.setAttribute('aria-pressed', String(active));
+        chip.setAttribute('aria-checked', String(active));
       });
       renderTimeline(state);
     }

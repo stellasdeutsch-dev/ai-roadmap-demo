@@ -278,12 +278,18 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* Нативная <legend> рисуется НА линии рамки, поэтому на узком экране
    двухстрочный заголовок («Дополнительный контекст» + «необязательно»)
    разрывался: первая строка оставалась снаружи скруглённой карточки.
-   float+width:100% выводит legend из этого режима и делает её обычным
-   блоком внутри отступов. */
+   Вывести её в обычный поток можно только через float (display:block
+   легенду из спец-режима не выводит).
+
+   Но float шириной 100% ломает всё, что идёт следом: .grid-2 — это
+   grid-контейнер, он образует независимый контекст форматирования и
+   поэтому не заходит под float, а сжимается рядом с ним, уезжая в
+   узкую колонку. Отсюда обязательный clear на соседях легенды. */
 .card legend{
   float:left;width:100%;padding:0;margin:0 0 4px;
   font-weight:600;font-size:15px;color:var(--ink-900);
 }
+.card legend ~ *{clear:both}
 .card::after{content:"";display:table;clear:both}
 .optional{font-weight:400;font-size:13px;color:var(--ink-500)}
 .fieldset-note{font-size:13px;color:var(--ink-500);margin:2px 0 16px;max-width:var(--measure)}

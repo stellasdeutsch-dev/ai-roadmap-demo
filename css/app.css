@@ -2,49 +2,109 @@
 
 /* ==========================================================================
    AI Roadmap — стили
+   Визуальный язык общий с Bolashak Way: светлый фон, тёмные навигационные
+   карточки, синий акцент, крупные скругления.
    ========================================================================== */
 
-:root{
-  --brand:#4338ca;
-  --brand-600:#4f46e5;
-  --brand-700:#3730a3;
-  --brand-050:#eef2ff;
-  --brand-100:#e0e7ff;
+/* Inter лежит в репозитории, а не грузится с fonts.googleapis.com.
+   Страница утверждает, что работает без обращения к внешним сайтам, —
+   подключение шрифта с чужого домена сделало бы это утверждение ложным
+   и заодно ломало бы типографику офлайн. Три подмножества вместо семи:
+   кириллица и латиница, остальное этому интерфейсу не нужно. */
+@font-face{
+  font-family:"Inter";font-style:normal;font-weight:300 800;font-display:swap;
+  src:url("../fonts/inter-cyrillic.woff2") format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+@font-face{
+  font-family:"Inter";font-style:normal;font-weight:300 800;font-display:swap;
+  src:url("../fonts/inter-latin-ext.woff2") format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face{
+  font-family:"Inter";font-style:normal;font-weight:300 800;font-display:swap;
+  src:url("../fonts/inter-latin.woff2") format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
 
-  --ink-900:#111527;
-  --ink-700:#2c3346;
-  --ink-600:#414a61;
-  --ink-500:#5b6478;   /* 5.6:1 на белом */
+:root{
+  /* --- палитра Bolashak Way --- */
+  --navy:#0b1220;
+  --navy-2:#101a2e;
+  --navy-3:#1a2540;
+  --on-navy:#ffffff;
+  --on-navy-muted:rgba(255,255,255,.62);
+
+  /* Яркий синий референса (#2f7bff) даёт с белым текстом всего 3.89:1, а
+     светлый конец градиента (#5aa9ff) — 2.46:1. Поэтому он оставлен только
+     для декора: свечения, подсветки, отсвет на тёмной карточке. Всё, где
+     поверх лежит текст, использует --accent-strong и градиент --accent-grad,
+     у которого даже самый светлый конец даёт 4.52:1. Вид тот же, читаемость
+     не принесена ему в жертву. */
+  --accent:#2f7bff;          /* только декоративное */
+  --accent-2:#5aa9ff;        /* только декоративное */
+  --accent-strong:#1f5fd6;   /* 5.73:1 на белом и с белым текстом */
+  --accent-deep:#1a4fb8;     /* 7.36:1 — ховер и активное состояние */
+  --accent-grad:linear-gradient(135deg,#1f5fd6 0%,#2a70ee 100%);
+  --accent-tint:rgba(47,123,255,.12);
+
+  /* Совместимость: в разметке и модулях уже используются имена brand-*.
+     Переопределяем их на новый акцент, а не правим сотню мест. */
+  --brand:var(--accent-strong);
+  --brand-600:var(--accent-strong);
+  --brand-700:var(--accent-deep);
+  --brand-050:#eaf2ff;
+  --brand-100:#d3e4ff;
+
+  --ink-900:#111827;
+  --ink-700:#2b3648;
+  --ink-600:#3d4859;
+  --ink-500:#5a6577;   /* 5.5:1 на #f2f4f8 */
   --ink-400:#8b93a7;   /* только декоративное */
 
   --bg:#ffffff;
-  --bg-alt:#f7f8fc;
-  --bg-sunk:#eef0f7;
+  --bg-alt:#f2f4f8;
+  --bg-sunk:#e8ecf3;
 
-  --line:#e3e6f0;
-  --line-strong:#cbd1e2;
+  --line:#e2e7f0;
+  --line-strong:#c8d0de;
 
-  --ok-700:#166534;   --ok-050:#e8f5ed;
+  --ok-700:#0f7a45;   --ok-050:#e6f6ee;
   --warn-700:#8a5300; --warn-050:#fdf3e2;
-  --stop-700:#9b1c1c; --stop-050:#fdeaea;
+  --stop-700:#a32226; --stop-050:#fdecec;
 
-  /* Цвет текста ПОВЕРХ заливки. В тёмной теме brand/ok становятся светлыми,
-     и белый текст на них даёт ~3:1 — поэтому там текст тёмный. */
   --on-brand:#ffffff;
   --on-ok:#ffffff;
 
-  --radius:12px;
-  --radius-lg:16px;
-  --shadow-1:0 1px 2px rgba(17,21,39,.05), 0 2px 8px rgba(17,21,39,.05);
-  --shadow-2:0 12px 32px rgba(17,21,39,.14);
+  /* --- форма --- */
+  --r-xl:32px;
+  --r-lg:24px;
+  --radius-lg:20px;
+  --radius:14px;
+  --r-sm:12px;
+  --r-pill:999px;
+
+  /* --- глубина --- */
+  --shadow-1:0 1px 2px rgba(11,18,32,.05), 0 4px 14px rgba(11,18,32,.06);
+  --shadow-2:0 2px 6px rgba(11,18,32,.08), 0 18px 44px rgba(11,18,32,.12);
+  --shadow-navy:0 20px 60px rgba(11,18,32,.30);
+  --glow:0 12px 32px rgba(47,123,255,.42);
+  --gloss:inset 0 1px 0 rgba(255,255,255,.38);
+
+  /* Тёмная карточка собирается из трёх слоёв: точечная сетка, синий отсвет
+     из левого верхнего угла и базовый градиент. Держим их в переменных, чтобы
+     герой и любые другие тёмные блоки выглядели одинаково. */
+  --navy-grid:radial-gradient(rgba(255,255,255,.055) 1px, transparent 1px);
+  --navy-grid-size:22px 22px;
+  --navy-sheen:radial-gradient(120% 90% at 12% -10%, rgba(90,169,255,.22) 0%, rgba(90,169,255,0) 55%);
+  --navy-base:linear-gradient(160deg, var(--navy) 0%, var(--navy-3) 100%);
 
   --dur:.16s;
+  --ease-spring:cubic-bezier(.32,.72,0,1);
   --measure:68ch;
-  --topbar-h:60px;
+  --topbar-h:64px;
+  --content-max:1120px;
 
-  /* Сайт всегда светлый, независимо от системной темы устройства —
-     это отключает и авто-тёмную раскраску нативных элементов
-     (скроллбар, дата-пикер, чекбоксы) в браузере. */
   color-scheme: light only;
 }
 
@@ -93,10 +153,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* ---------------------------------------------------------------- шапка */
 .topbar{
   position:sticky;top:0;z-index:50;
-  background:var(--bg);border-bottom:1px solid var(--line);
+  background:rgba(242,244,248,.88);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);
+  backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--line);
 }
 .topbar-inner{
-  max-width:1440px;margin-inline:auto;padding:0 20px;
+  max-width:var(--content-max);margin-inline:auto;padding:0 20px;
   height:var(--topbar-h);display:flex;align-items:center;gap:16px;
 }
 .brand{
@@ -104,14 +167,15 @@ button,input,select,textarea{font:inherit;color:inherit}
   font-weight:700;font-size:16px;color:var(--ink-900);letter-spacing:-.01em;
 }
 .brand-mark{
-  display:grid;place-items:center;width:30px;height:30px;
-  background:var(--brand);color:var(--on-brand);border-radius:8px;
+  display:grid;place-items:center;width:32px;height:32px;
+  background:var(--navy-base);color:var(--on-brand);border-radius:10px;
+  box-shadow:var(--gloss);
 }
 .topbar-meta{margin-left:auto;display:flex;align-items:center;gap:10px}
 
 .badge{
-  padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;
-  background:var(--warn-050);color:var(--warn-700);
+  padding:5px 12px;border-radius:var(--r-pill);font-size:12px;font-weight:500;
+  background:rgba(11,18,32,.06);color:var(--ink-500);
 }
 .badge.is-live{background:var(--ok-050);color:var(--ok-700)}
 .usage{font-size:12px;color:var(--ink-500);font-variant-numeric:tabular-nums}
@@ -119,34 +183,86 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* ---------------------------------------------------------------- кнопки */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  min-height:42px;padding-inline:18px;
-  border:1px solid transparent;border-radius:10px;
+  min-height:44px;padding-inline:22px;
+  border:1px solid transparent;border-radius:var(--r-pill);
   font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;
   text-decoration:none;
-  transition:background-color var(--dur) ease,border-color var(--dur) ease,
-             color var(--dur) ease,transform var(--dur) ease;
+  transition:background var(--dur) ease,border-color var(--dur) ease,
+             color var(--dur) ease,transform var(--dur) var(--ease-spring),
+             box-shadow var(--dur) ease;
 }
-.btn-sm{min-height:34px;padding-inline:13px;font-size:13px}
-.btn-lg{min-height:48px;padding-inline:26px;font-size:15px}
-.btn-icon{min-height:42px;width:42px;padding:0;flex-shrink:0}
+.btn-sm{min-height:36px;padding-inline:16px;font-size:13px}
+.btn-lg{
+  min-height:54px;padding-inline:34px;font-size:15px;
+  letter-spacing:.06em;text-transform:uppercase;
+}
+.btn-icon{min-height:44px;width:44px;padding:0;flex-shrink:0}
 
-.btn-primary{background:var(--brand);color:var(--on-brand)}
-.btn-primary:hover{background:var(--brand-700)}
+.btn-primary{
+  background:var(--accent-grad);
+  color:var(--on-brand);box-shadow:var(--glow),var(--gloss);
+}
+.btn-primary:hover{filter:brightness(1.05)}
 .btn-primary:active{transform:translateY(1px)}
 
-.btn-outline{background:transparent;color:var(--brand);border-color:var(--line-strong)}
-.btn-outline:hover{background:var(--brand-050);border-color:var(--brand)}
+.btn-outline{background:var(--bg);color:var(--accent-strong);border-color:var(--line-strong)}
+.btn-outline:hover{background:var(--brand-050);border-color:var(--accent)}
 
 .btn-ghost{background:transparent;color:var(--ink-500)}
 .btn-ghost:hover{background:var(--bg-sunk);color:var(--ink-900)}
 
 .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
 
+/* ------------------------------------------------- тёмная карточка (общая) */
+/* Один класс на все навигационные «геройские» блоки — интро анкеты и шапку
+   плана. Слои и радиус те же, что в Bolashak Way. */
+.card-dark{
+  position:relative;
+  background:var(--navy-grid),var(--navy-sheen),var(--navy-base);
+  background-size:var(--navy-grid-size),auto,auto;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--r-xl);
+  box-shadow:var(--shadow-navy);
+  color:var(--on-navy);
+  padding:34px 30px;
+}
+.card-dark h1,.card-dark h2,.card-dark h3{color:var(--on-navy)}
+.card-dark p{color:var(--on-navy-muted)}
+.card-dark .kicker{
+  font-size:clamp(28px,4vw,44px);font-weight:300;line-height:1.05;
+  letter-spacing:-.02em;color:var(--on-navy-muted);
+}
+.card-dark h1{
+  font-size:clamp(26px,4vw,44px);font-weight:700;letter-spacing:-.02em;
+  line-height:1.08;margin-bottom:12px;
+}
+
+/* Содержимое поверх тёмной карточки. Кнопки .btn-outline рассчитаны на
+   светлый фон, поэтому внутри героя перекрашиваются в стекло — иначе
+   белая обводка на белом фоне кнопки просто исчезает. */
+.card-dark .lede{color:var(--on-navy-muted);max-width:60ch}
+.card-dark .hint{color:rgba(255,255,255,.5)}
+.card-dark .quickfill{margin-top:20px}
+.card-dark .btn-outline{
+  background:rgba(255,255,255,.10);color:#fff;border-color:rgba(255,255,255,.22);
+}
+.card-dark .btn-outline:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4)}
+.card-dark :focus-visible{outline-color:var(--accent-2)}
+
+/* Плашки внутри тёмной карточки: полупрозрачное стекло, а не заливка. */
+.pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.pill-dark{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 13px;border-radius:var(--r-pill);
+  background:rgba(255,255,255,.09);color:rgba(255,255,255,.82);
+  font-size:12.5px;font-weight:500;
+}
+
 /* ---------------------------------------------------------------- анкета */
-.screen{max-width:1440px;margin-inline:auto;padding:28px 20px 64px}
-.intake{max-width:760px;margin-inline:auto}
+.screen{max-width:var(--content-max);margin-inline:auto;padding:28px 20px 72px}
+.intake{max-width:820px;margin-inline:auto}
 .intake-head{margin-bottom:26px}
-.intake-head h1{font-size:30px;margin-bottom:10px}
+.intake-head:not(.card-dark) h1{font-size:30px;margin-bottom:10px}
 .lede{color:var(--ink-500);max-width:var(--measure);font-size:16px}
 
 .quickfill{
@@ -159,10 +275,16 @@ button,input,select,textarea{font:inherit;color:inherit}
   background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-lg);
   padding:22px;margin:0 0 16px;box-shadow:var(--shadow-1);
 }
+/* Нативная <legend> рисуется НА линии рамки, поэтому на узком экране
+   двухстрочный заголовок («Дополнительный контекст» + «необязательно»)
+   разрывался: первая строка оставалась снаружи скруглённой карточки.
+   float+width:100% выводит legend из этого режима и делает её обычным
+   блоком внутри отступов. */
 .card legend{
-  padding:0 8px;margin-left:-8px;
+  float:left;width:100%;padding:0;margin:0 0 4px;
   font-weight:600;font-size:15px;color:var(--ink-900);
 }
+.card::after{content:"";display:table;clear:both}
 .optional{font-weight:400;font-size:13px;color:var(--ink-500)}
 .fieldset-note{font-size:13px;color:var(--ink-500);margin:2px 0 16px;max-width:var(--measure)}
 
@@ -176,7 +298,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 input[type=text],input:not([type]),input[type=month],select,textarea{
   width:100%;min-height:42px;padding:9px 12px;
   background:var(--bg);color:var(--ink-900);
-  border:1px solid var(--line-strong);border-radius:10px;
+  border:1px solid var(--line-strong);border-radius:var(--r-sm);
   transition:border-color var(--dur) ease,box-shadow var(--dur) ease;
 }
 textarea{min-height:auto;resize:vertical;line-height:1.5}
@@ -195,7 +317,7 @@ select{appearance:none;
 .radio{
   display:inline-flex;align-items:center;gap:7px;
   min-height:42px;padding:0 14px;
-  border:1px solid var(--line-strong);border-radius:10px;cursor:pointer;
+  border:1px solid var(--line-strong);border-radius:var(--r-sm);cursor:pointer;
   font-size:14px;transition:border-color var(--dur) ease,background-color var(--dur) ease;
 }
 .radio:hover{border-color:var(--brand)}
@@ -283,7 +405,7 @@ select{appearance:none;
 }
 
 .roadmap-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:18px}
-.roadmap-head h1{font-size:24px;margin-bottom:8px}
+.roadmap-head:not(.card-dark) h1{font-size:24px;margin-bottom:8px}
 .summary{color:var(--ink-500);max-width:var(--measure)}
 
 .confidence{
@@ -297,7 +419,8 @@ select{appearance:none;
 .progress{display:flex;align-items:center;gap:14px;margin-bottom:20px}
 .progress-bar{flex:1;height:7px;background:var(--bg-sunk);border-radius:999px;overflow:hidden}
 .progress-fill{
-  height:100%;width:0;background:var(--brand);border-radius:999px;
+  height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,var(--accent) 0%,var(--accent-2) 100%);
   transition:width .35s cubic-bezier(.4,0,.2,1);
 }
 .progress-label{font-size:13px;color:var(--ink-500);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -309,9 +432,29 @@ select{appearance:none;
   font-size:13px;color:var(--ink-600);cursor:pointer;
   transition:border-color var(--dur) ease,background-color var(--dur) ease,color var(--dur) ease;
 }
-.chip:hover{border-color:var(--brand);color:var(--brand)}
-.chip.is-active{background:var(--brand);border-color:var(--brand);color:var(--on-brand);font-weight:500}
+.chip:hover{border-color:var(--accent-strong);color:var(--accent-deep)}
+.chip.is-active{
+  background:var(--accent-grad);
+  border-color:transparent;color:var(--on-brand);font-weight:600;
+  box-shadow:0 6px 16px rgba(47,123,255,.30),var(--gloss);
+}
 .chip-sm{min-height:30px;font-size:12px;padding:0 11px;text-align:left}
+
+/* Шапка плана — та же тёмная карточка; «шаблон» внутри неё становится
+   стеклянной плашкой вместо светло-красной. */
+/* Шапка плана живёт в узкой колонке рядом с чатом, поэтому геройский
+   кегль 44px здесь не годится: заголовок программы разъезжается на пять
+   строк. Отдельная, более сдержанная шкала. */
+.roadmap-head.card-dark{
+  margin-bottom:20px;padding:26px 24px;border-radius:var(--r-lg);
+  display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+}
+.roadmap-head.card-dark h1{font-size:clamp(20px,2.2vw,26px);margin-bottom:8px}
+.roadmap-head.card-dark .summary{color:var(--on-navy-muted);max-width:var(--measure)}
+.roadmap-head.card-dark .confidence{
+  background:rgba(255,255,255,.10);color:rgba(255,255,255,.85);
+  border:1px solid rgba(255,255,255,.16);
+}
 
 /* ---------------------------------------------------------------- таймлайн */
 .timeline{position:relative;padding-left:34px}
@@ -358,8 +501,8 @@ select{appearance:none;
 .tl-more{text-decoration:none}
 
 .tl-card{
-  background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);
-  padding:16px 18px;box-shadow:var(--shadow-1);
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:18px 20px;box-shadow:var(--shadow-1);
   transition:border-color var(--dur) ease,box-shadow var(--dur) ease,opacity var(--dur) ease;
 }
 .tl-card:hover{border-color:var(--line-strong);box-shadow:var(--shadow-2)}
@@ -554,7 +697,7 @@ select{appearance:none;
 /* ================================================================ */
 /* Страница отдельного шага                                          */
 /* ================================================================ */
-.screen-step{max-width:860px}
+.screen-step{max-width:880px}
 
 .sd-back-row{
   display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:20px;
@@ -733,8 +876,9 @@ ul.sd-list li::before{
 @media (max-width:720px){
   .screen{padding:18px 14px 48px}
   h1{font-size:22px}
-  .intake-head h1{font-size:25px}
-  .roadmap-head h1{font-size:21px}
+  .card-dark{padding:24px 20px;border-radius:var(--r-lg)}
+  .card-dark h1{font-size:26px}
+  .card-dark .kicker{font-size:24px}
 
   /* шапка: бейдж и три кнопки (печать/скачать/заново) не помещаются в
      одну строку на телефоне — даём им уехать в горизонтальный скролл

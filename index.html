@@ -17,10 +17,10 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
 <!--
-  Шрифты сознательно не подгружаются с fonts.googleapis.com: страница
-  заявляет, что работает офлайн и не обращается к внешним сайтам, и
-  внешний шрифт был бы прямым противоречием этому — плюс лишний внешний
-  запрос при каждом визите. Стек в css/app.css падает на системный шрифт.
+  Inter лежит в fonts/ этого репозитория и подключается через @font-face
+  в css/app.css. С fonts.googleapis.com он сознательно НЕ грузится:
+  страница заявляет, что работает офлайн и не обращается к внешним сайтам,
+  и внешний шрифт был бы прямым противоречием этому.
 -->
 <link rel="stylesheet" href="css/app.css">
 </head>
@@ -60,8 +60,9 @@
   <!-- ============================ ЭКРАН 1: АНКЕТА ==================== -->
   <section class="screen" id="screenIntake">
     <div class="intake">
-      <div class="intake-head">
-        <h1>Персональный план поступления</h1>
+      <div class="intake-head card-dark">
+        <p class="kicker">План поступления</p>
+        <h1>Шаг за шагом до зачисления</h1>
         <p class="lede">
           Расскажите о себе и о программе — соберу пошаговый план с дедлайнами
           и отмечаемыми чек-листами, который можно редактировать под себя и
@@ -69,6 +70,11 @@
           обращения к внешним сайтам и без регистрации. Ничего никуда не
           отправляется.
         </p>
+        <div class="pill-row">
+          <span class="pill-dark">Без регистрации</span>
+          <span class="pill-dark">Данные остаются на устройстве</span>
+          <span class="pill-dark">Работает офлайн</span>
+        </div>
         <div class="quickfill">
           <button class="btn btn-outline btn-sm" type="button" id="fillSampleBtn">
             Заполнить примером
@@ -246,7 +252,7 @@
   <section class="screen workspace" id="screenRoadmap" hidden>
 
     <div class="roadmap-col">
-      <div class="roadmap-head">
+      <div class="roadmap-head card-dark">
         <div>
           <h1 id="roadmapTitle"></h1>
           <p class="summary" id="roadmapSummary"></p>

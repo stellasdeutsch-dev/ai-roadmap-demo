@@ -330,15 +330,32 @@ select{appearance:none;
 .tl-item{position:relative;margin-bottom:12px}
 
 .tl-marker{
-  position:absolute;left:-34px;top:16px;
-  width:24px;height:24px;border-radius:50%;
+  position:absolute;left:-38px;top:14px;
+  width:32px;height:32px;border-radius:50%;
   display:grid;place-items:center;
   background:var(--bg);border:2px solid var(--line-strong);
-  color:var(--ink-500);font-size:11px;font-weight:700;
+  color:var(--ink-500);font-size:13px;font-weight:700;
   transition:background-color var(--dur) ease,border-color var(--dur) ease,color var(--dur) ease;
 }
+.tl-marker svg{width:17px;height:17px}
+.tl-item[data-status="not_started"] .tl-marker{border-color:var(--phase-line,var(--line-strong));color:var(--phase-ink,var(--ink-500))}
 .tl-item[data-status="in_progress"] .tl-marker{border-color:var(--brand);color:var(--brand);background:var(--brand-050)}
 .tl-item[data-status="done"] .tl-marker{border-color:var(--ok-700);background:var(--ok-700);color:var(--on-ok)}
+
+/* Цвет фазы — только на маркере и подписи фазы: сами карточки остаются
+   нейтральными, иначе список из 11 разноцветных блоков читается хуже,
+   а не лучше. */
+.tl-item[data-phase="offer"]      {--phase-ink:#3730a3;--phase-line:#a5b4fc}
+.tl-item[data-phase="scholarship"]{--phase-ink:#8a5300;--phase-line:#e6c37a}
+.tl-item[data-phase="documents"]  {--phase-ink:#155e63;--phase-line:#8fc7cc}
+.tl-item[data-phase="finance"]    {--phase-ink:#166534;--phase-line:#93c9a7}
+.tl-item[data-phase="visa"]       {--phase-ink:#9b1c1c;--phase-line:#e3a3a3}
+.tl-item[data-phase="arrival"]    {--phase-ink:#6b21a8;--phase-line:#c9a6e6}
+.tl-item[data-phase="study"]      {--phase-ink:#0f4c81;--phase-line:#9dc0de}
+
+.tl-title-link{color:inherit;text-decoration:none}
+.tl-title-link:hover{color:var(--brand-700);text-decoration:underline;text-underline-offset:3px}
+.tl-more{text-decoration:none}
 
 .tl-card{
   background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);
@@ -534,6 +551,159 @@ select{appearance:none;
 .proposal.is-stale{opacity:.55}
 .proposal-stale-note{font-size:12px;color:var(--ink-500);margin-top:8px}
 
+/* ================================================================ */
+/* Страница отдельного шага                                          */
+/* ================================================================ */
+.screen-step{max-width:860px}
+
+.sd-back-row{
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:20px;
+}
+.sd-back{
+  font-size:14px;font-weight:600;color:var(--brand-700);text-decoration:none;
+}
+.sd-back:hover{text-decoration:underline;text-underline-offset:3px}
+.sd-crumb{font-size:13px;color:var(--ink-500)}
+
+/* ---- шапка ---- */
+.sd-hero{
+  display:flex;gap:18px;align-items:flex-start;
+  padding:24px;border-radius:var(--radius-lg);
+  background:var(--sd-bg,var(--bg-alt));
+  border:1px solid var(--sd-line,var(--line));
+}
+.sd-hero-icon{
+  flex-shrink:0;display:grid;place-items:center;
+  width:52px;height:52px;border-radius:14px;
+  background:var(--bg);border:1px solid var(--sd-line,var(--line));
+  color:var(--sd-ink,var(--brand-700));
+}
+.sd-hero-icon svg{width:26px;height:26px}
+.sd-hero-text{min-width:0}
+.sd-phase-label{
+  font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--sd-ink,var(--brand-700));margin-bottom:6px;
+}
+.sd-hero h1{font-size:clamp(22px,3.4vw,30px);line-height:1.2;margin-bottom:10px}
+.sd-lede{color:var(--ink-700);font-size:16px;max-width:var(--measure)}
+
+.sd-phase-offer      {--sd-ink:#3730a3;--sd-line:#c7cffc;--sd-bg:#f2f4ff}
+.sd-phase-scholarship{--sd-ink:#8a5300;--sd-line:#eed6a8;--sd-bg:#fdf7ec}
+.sd-phase-documents  {--sd-ink:#155e63;--sd-line:#b3dade;--sd-bg:#eff8f9}
+.sd-phase-finance    {--sd-ink:#166534;--sd-line:#b6dcc3;--sd-bg:#f0f8f3}
+.sd-phase-visa       {--sd-ink:#9b1c1c;--sd-line:#eec4c4;--sd-bg:#fdf3f3}
+.sd-phase-arrival    {--sd-ink:#6b21a8;--sd-line:#dcc4ef;--sd-bg:#faf4fe}
+.sd-phase-study      {--sd-ink:#0f4c81;--sd-line:#bcd5e8;--sd-bg:#f1f7fc}
+
+/* ---- карточки фактов ---- */
+.sd-facts{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:12px;margin-top:20px;
+}
+.sd-fact{
+  display:flex;flex-direction:column;gap:4px;
+  padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--bg);
+}
+.sd-fact-k{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-500)}
+.sd-fact-v{font-size:16px;font-weight:600;color:var(--ink-900)}
+.sd-fact-n{font-size:13px;color:var(--ink-500)}
+.sd-fact .status-select{margin-top:2px}
+.sd-fact-overdue{border-color:#eec4c4;background:var(--stop-050)}
+.sd-fact-overdue .sd-fact-v,.sd-fact-overdue .sd-fact-n{color:var(--stop-700)}
+.sd-fact-today,.sd-fact-soon{border-color:#eed6a8;background:var(--warn-050)}
+.sd-fact-today .sd-fact-v,.sd-fact-soon .sd-fact-v,
+.sd-fact-today .sd-fact-n,.sd-fact-soon .sd-fact-n{color:var(--warn-700)}
+
+.sd-progress{display:flex;align-items:center;gap:12px;margin-top:16px}
+.sd-progress-bar{flex:1;height:8px;border-radius:99px;background:var(--bg-sunk);overflow:hidden}
+.sd-progress-fill{height:100%;background:var(--brand);border-radius:99px;transition:width var(--dur) ease}
+.sd-progress span{font-size:13px;font-weight:600;color:var(--ink-500);font-variant-numeric:tabular-nums}
+
+.sd-intro{
+  margin-top:24px;font-size:17px;line-height:1.65;color:var(--ink-700);
+  max-width:var(--measure);
+}
+
+/* ---- секции ---- */
+.sd-section{margin-top:28px}
+.sd-section h2{
+  font-size:18px;font-weight:700;color:var(--ink-900);margin-bottom:12px;
+  padding-bottom:8px;border-bottom:1px solid var(--line);
+}
+.sd-section p{color:var(--ink-700);max-width:var(--measure)}
+
+.sd-list{display:flex;flex-direction:column;gap:12px;max-width:var(--measure);padding-left:0}
+.sd-list li{
+  list-style:none;position:relative;padding-left:32px;
+  color:var(--ink-700);line-height:1.6;
+}
+.sd-list li b{display:block;color:var(--ink-900);font-weight:600;margin-bottom:2px}
+.sd-item-text{display:block}
+
+/* нумерация для порядка действий — счётчик, а не маркер списка,
+   чтобы номер можно было оформить кружком */
+ol.sd-list{counter-reset:sd}
+ol.sd-list li{counter-increment:sd}
+ol.sd-list li::before{
+  content:counter(sd);
+  position:absolute;left:0;top:1px;
+  width:22px;height:22px;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--brand-050);color:var(--brand-700);
+  font-size:12px;font-weight:700;
+}
+ul.sd-list li::before{
+  content:"";position:absolute;left:8px;top:9px;
+  width:6px;height:6px;border-radius:50%;background:var(--line-strong);
+}
+
+.sec-warn h2{border-bottom-color:#eec4c4}
+.sec-warn ul.sd-list li::before{background:var(--stop-700)}
+.sec-tip h2{border-bottom-color:#b6dcc3}
+.sec-tip ul.sd-list li::before{background:var(--ok-700)}
+.sec-docs ul.sd-list li::before{background:var(--brand)}
+
+.sd-check{display:flex;flex-direction:column;gap:10px;padding-left:0}
+.sd-check li{list-style:none}
+.sd-check label{display:flex;gap:11px;align-items:flex-start;cursor:pointer;color:var(--ink-700)}
+.sd-check input{width:18px;height:18px;margin-top:2px;accent-color:var(--brand);flex-shrink:0;cursor:pointer}
+.sd-check .is-done{text-decoration:line-through;color:var(--ink-500)}
+
+.sd-rel{display:flex;flex-direction:column;gap:9px;padding-left:0;margin-top:10px}
+.sd-rel li{list-style:none;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.sd-rel a{color:var(--ink-900);font-weight:600;text-decoration:none;border-bottom:1px solid var(--brand-100)}
+.sd-rel a:hover{color:var(--brand-700)}
+.sd-rel-status{font-size:12px;padding:2px 9px;border-radius:99px;background:var(--bg-sunk);color:var(--ink-500)}
+.sd-rel-status.is-done{background:var(--ok-050);color:var(--ok-700)}
+.sd-rel-status.is-in_progress{background:var(--brand-050);color:var(--brand-700)}
+
+.sd-muted{color:var(--ink-500);font-size:14px}
+.sd-own{margin-top:24px;padding:14px 16px;background:var(--bg-alt);border-radius:var(--radius)}
+
+/* ---- предыдущий / следующий ---- */
+.sd-nav{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  margin-top:40px;padding-top:24px;border-top:1px solid var(--line);
+}
+.sd-nav-link{
+  display:flex;flex-direction:column;gap:3px;
+  padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius);
+  text-decoration:none;background:var(--bg);
+  transition:border-color var(--dur) ease,box-shadow var(--dur) ease;
+}
+.sd-nav-link:hover{border-color:var(--line-strong);box-shadow:var(--shadow-1)}
+.sd-nav-link span{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-500)}
+.sd-nav-link b{font-size:14px;font-weight:600;color:var(--ink-900);line-height:1.4}
+.sd-nav-link.is-next{text-align:right}
+
+@media (max-width:720px){
+  .sd-hero{flex-direction:column;gap:14px;padding:18px}
+  .sd-facts{grid-template-columns:1fr}
+  .sd-nav{grid-template-columns:1fr}
+  .sd-nav-link.is-next{text-align:left}
+}
+
 /* ---------------------------------------------------------------- печать */
 /* .tl-why — это <details>: видимость его содержимого управляется атрибутом
    open, а не CSS display, и не переопределяется стилями надёжно во всех
@@ -548,6 +718,15 @@ select{appearance:none;
   .tl-card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
   .tl-item{break-inside:avoid}
   .tl-why summary{display:none}
+
+  /* Страница шага: на бумаге навигация бессмысленна, а содержание — нет.
+     Печатается ровно тот шаг, который открыт на экране. */
+  .sd-back-row,.sd-nav{display:none !important}
+  .sd-hero{border:1px solid #ccc;background:#fff;break-inside:avoid}
+  .sd-hero-icon{border-color:#ccc}
+  .sd-fact{border:1px solid #ccc;break-inside:avoid}
+  .sd-section{break-inside:avoid}
+  .sd-list li,.sd-check li{break-inside:avoid}
 }
 
 /* ---------------------------------------------------------------- мобильные */

@@ -17,6 +17,7 @@
  */
 
 import { $, $$, esc, formatDate, daysUntil } from './utils.js';
+import { iconForPhase } from './content.js';
 import {
   PHASE_LABELS,
   PHASES,
@@ -408,11 +409,21 @@ function stepMarkup(step) {
     : '';
 
   return `
-    <li class="tl-item" id="step-${esc(step.id)}" data-status="${step.status}" data-step="${esc(step.id)}">
-      <span class="tl-marker" aria-hidden="true">${step.status === 'done' ? '✓' : step.order}</span>
+    <li class="tl-item" id="step-${esc(step.id)}" data-status="${step.status}" data-step="${esc(step.id)}"
+        data-phase="${esc(step.phase)}">
+      <span class="tl-marker" aria-hidden="true">
+        ${
+          step.status === 'done'
+            ? '✓'
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+                    stroke-linecap="round" stroke-linejoin="round">${iconForPhase(step.phase)}</svg>`
+        }
+      </span>
       <div class="tl-card">
         <div class="tl-top">
-          <h3 class="tl-title">${esc(step.title)}</h3>
+          <h3 class="tl-title">
+            <a class="tl-title-link" href="#/step/${esc(step.id)}">${esc(step.title)}</a>
+          </h3>
           <label class="sr-only" for="st-${esc(step.id)}">Статус шага «${esc(step.title)}»</label>
           <select class="status-select" id="st-${esc(step.id)}" data-action="status" data-step="${esc(step.id)}">
             ${Object.entries(STATUS_LABELS)
@@ -425,6 +436,7 @@ function stepMarkup(step) {
         ${checklist}
         ${why}
         <div class="tl-actions">
+          <a class="btn btn-outline btn-sm tl-more" href="#/step/${esc(step.id)}">Подробнее</a>
           <button type="button" class="btn btn-ghost btn-sm" data-action="edit" data-step="${esc(step.id)}">Изменить</button>
           <button type="button" class="btn btn-ghost btn-sm btn-danger" data-action="delete" data-step="${esc(step.id)}">Удалить</button>
         </div>

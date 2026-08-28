@@ -20,6 +20,7 @@ import { buildRoadmap, normalizeRoadmap, applyOperations } from './plan.js';
 import { initTimeline, createTimelineUiState, refreshRoadmap, initFilters } from './timeline.js';
 import { heuristicReply } from './assistant.js';
 import { exportPlan, importPlanFile, downloadRaw, printPlan, exportCalendar } from './exporter.js';
+import { renderStepPage, initStepView, currentStepId } from './stepview.js';
 
 const state = {
   profile: null,
@@ -90,9 +91,10 @@ function init() {
     state.roadmap = normalizeRoadmap(result.data.roadmap);
     state.messages = result.data.messages ?? [];
     state.pendingProposal = result.data.pendingProposal ?? null;
-    showScreen('roadmap');
     renderAll();
     renderChatHistory();
+    // Маршрут решает, что показать: список или конкретный шаг по прямой ссылке.
+    applyRoute();
     return;
   }
 
@@ -104,12 +106,47 @@ function showScreen(name) {
   $('#screenLoading').hidden = name !== 'loading';
   $('#screenRoadmap').hidden = name !== 'roadmap';
   $('#screenRecovery').hidden = name !== 'recovery';
+  $('#screenStep').hidden = name !== 'step';
 
-  const onRoadmap = name === 'roadmap';
-  $('#resetBtn').hidden = !onRoadmap;
-  $('#exportBtn').hidden = !onRoadmap;
-  $('#printBtn').hidden = !onRoadmap;
-  $('#calendarBtn').hidden = !onRoadmap;
+  // Кнопки плана осмысленны и в списке, и на странице шага.
+  const hasPlan = name === 'roadmap' || name === 'step';
+  $('#resetBtn').hidden = !hasPlan;
+  $('#exportBtn').hidden = !hasPlan;
+  $('#printBtn').hidden = !hasPlan;
+  $('#calendarBtn').hidden = !hasPlan;
+}
+
+/* ------------------------------------------------------------------ */
+/* Маршрутизация по hash                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Показывает экран по текущему hash. Hash, а не History API: GitHub Pages
+ * не умеет отдавать index.html на произвольный путь, и /step/<id> вернул бы
+ * 404 при перезагрузке страницы.
+ */
+function applyRoute() {
+  if (!state.roadmap) return;
+
+  const stepId = currentStepId();
+  if (stepId) {
+    if (renderStepPage(state, stepId)) {
+      showScreen('step');
+      window.scrollTo(0, 0);
+      return;
+    }
+    // Шага с таким id нет (например, он удалён, а ссылка осталась) —
+    // молча возвращаем в список, не оставляя пользователя на пустом экране.
+    location.hash = '#/';
+    return;
+  }
+
+  showScreen('roadmap');
+  renderAll();
+}
+
+function initRouter() {
+  window.addEventListener('hashchange', applyRoute);
 }
 
 function showRecovery(raw) {
@@ -211,6 +248,9 @@ function initForm() {
       persistState();
 
       setTimeout(() => {
+        // Новый план — всегда начинаем со списка, даже если в адресе остался
+        // hash шага из прошлого плана (его id может уже не существовать).
+        if (location.hash && location.hash !== '#/') location.hash = '#/';
         showScreen('roadmap');
         renderAll();
         renderChatHistory();
@@ -298,6 +338,7 @@ function initExportImport() {
       state.filter = 'all';
       state.ui = createTimelineUiState();
       persistState();
+      if (location.hash && location.hash !== '#/') location.hash = '#/';
       showScreen('roadmap');
       renderAll();
       renderChatHistory();
@@ -514,5 +555,12 @@ initFilters(state);
 // timeline.js уже перерисовывает себя после любой мутации (renderTimeline
 // внутри refreshRoadmap) — здесь только персистенция в localStorage.
 initTimeline(state, () => persistState());
+// Страница шага пишет в те же данные — после её правок сохраняем и держим
+// список в актуальном виде, чтобы отметка была видна при возврате назад.
+initStepView(state, () => {
+  persistState();
+  renderAll();
+});
+initRouter();
 initChat();
 init();

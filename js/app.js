@@ -108,12 +108,14 @@ function showScreen(name) {
   $('#screenRecovery').hidden = name !== 'recovery';
   $('#screenStep').hidden = name !== 'step';
 
-  // Кнопки плана осмысленны и в списке, и на странице шага.
+  // Необязательный доступ: если разметка и скрипт разошлись (браузер
+  // держит в кэше старый app.js после правки index.html), пусть пропадёт
+  // одна кнопка, а не весь интерфейс вместе с экранами.
   const hasPlan = name === 'roadmap' || name === 'step';
-  $('#resetBtn').hidden = !hasPlan;
-  $('#exportBtn').hidden = !hasPlan;
-  $('#printBtn').hidden = !hasPlan;
-  $('#calendarBtn').hidden = !hasPlan;
+  for (const id of ['#resetBtn', '#exportBtn', '#printBtn', '#calendarBtn']) {
+    const el = $(id);
+    if (el) el.hidden = !hasPlan;
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -238,14 +240,23 @@ function initForm() {
     // Небольшая пауза только ради ощущения «идёт сборка» — вся работа
     // на самом деле синхронна и не требует сети.
     setTimeout(() => {
-      markLoading('render');
-      state.profile = profile;
-      state.roadmap = normalizeRoadmap(buildRoadmap(profile));
-      state.messages = [];
-      state.pendingProposal = null;
-      state.filter = 'all';
-      state.ui = createTimelineUiState();
-      persistState();
+      try {
+        markLoading('render');
+        state.profile = profile;
+        state.roadmap = normalizeRoadmap(buildRoadmap(profile));
+        state.messages = [];
+        state.pendingProposal = null;
+        state.filter = 'all';
+        state.ui = createTimelineUiState();
+        persistState();
+      } catch (err) {
+        // Любая ошибка здесь раньше оставляла экран загрузки навсегда:
+        // глобальный обработчик показывал баннер, но вернуться к анкете
+        // было уже нечем. Возвращаем форму и говорим, что произошло.
+        showScreen('intake');
+        showFormError(`Не удалось собрать план: ${err.message}. Проверьте поля и попробуйте ещё раз.`);
+        return;
+      }
 
       setTimeout(() => {
         // Новый план — всегда начинаем со списка, даже если в адресе остался

@@ -9,15 +9,26 @@
  */
 
 export const PHASES = [
-  { id: 'offer', label: 'Подтверждение offer' },
-  { id: 'scholarship', label: 'Стипендия / грант' },
-  { id: 'documents', label: 'Документы' },
-  { id: 'finance', label: 'Финансы и оплата' },
-  { id: 'visa', label: 'Виза' },
-  { id: 'arrival', label: 'Переезд и жильё' },
-  { id: 'study', label: 'Начало учёбы' },
+  { id: 'offer', label: 'Подтверждение offer', tone: 'indigo' },
+  { id: 'scholarship', label: 'Стипендия / грант', tone: 'amber' },
+  { id: 'documents', label: 'Документы', tone: 'teal' },
+  { id: 'finance', label: 'Финансы и оплата', tone: 'green' },
+  { id: 'visa', label: 'Виза', tone: 'red' },
+  { id: 'arrival', label: 'Переезд и жильё', tone: 'violet' },
+  { id: 'study', label: 'Начало учёбы', tone: 'blue' },
 ];
 export const PHASE_LABELS = new Map(PHASES.map((p) => [p.id, p.label]));
+
+/**
+ * Цветовой тон фазы. Палитра тонов общая для всех сайтов и живёт в
+ * css/app.css; какой фазе какой тон — решает сайт здесь. Так общий CSS не
+ * знает про конкретные фазы и одинаков у сайтов с разными наборами фаз.
+ * Пользовательский шаг без известной фазы получает нейтральный тон.
+ */
+const PHASE_TONES = new Map(PHASES.map((p) => [p.id, p.tone]));
+export function toneOf(phase) {
+  return PHASE_TONES.get(phase) ?? 'slate';
+}
 const PHASE_ORDER = new Map(PHASES.map((p, i) => [p.id, i]));
 
 export const STATUSES = ['not_started', 'in_progress', 'done'];
@@ -30,14 +41,14 @@ const DAY = 86400000;
 
 /** YYYY-MM-DD из локальных компонентов даты — в отличие от toISOString()
  *  не даёт сдвига на день в часовых поясах восточнее UTC. */
-function toLocalISODate(date) {
+export function toLocalISODate(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 }
 
-function addDays(date, n) {
+export function addDays(date, n) {
   const d = new Date(date);
   d.setDate(d.getDate() + n);
   return d;
@@ -58,6 +69,11 @@ export function dateFromToday(offsetDays) {
 function parseIntakeMonth(value) {
   if (!value || !/^\d{4}-\d{2}$/.test(value)) return null;
   const [y, m] = value.split('-').map(Number);
+  // Date сам «чинит» переполнение: месяц 13 становится январём следующего
+  // года, месяц 00 — декабрём предыдущего. Поле <input type="month"> такого
+  // не выдаст, но импортированный файл плана — легко, и план молча сдвинулся
+  // бы на месяц. Неправильное значение — это «дата неизвестна», а не догадка.
+  if (m < 1 || m > 12 || y < 2000 || y > 2100) return null;
   return new Date(y, m - 1, 1, 12, 0, 0);
 }
 

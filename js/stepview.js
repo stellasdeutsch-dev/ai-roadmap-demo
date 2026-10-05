@@ -12,7 +12,7 @@
  */
 
 import { $, esc, formatDate } from './utils.js';
-import { STATUSES, syncStatusFromChecklist, daysFromToday, PHASE_LABELS } from './plan.js';
+import { STATUSES, syncStatusFromChecklist, daysFromToday, PHASE_LABELS, toneOf } from './plan.js';
 import { contentFor, iconForPhase } from './content.js';
 
 const STATUS_LABELS = {
@@ -104,7 +104,7 @@ export function renderStepPage(state, stepId) {
       <span class="sd-crumb">Шаг ${step.order} из ${state.roadmap.steps.length} · ${esc(phaseLabel)}</span>
     </nav>
 
-    <header class="sd-hero sd-phase-${esc(step.phase)}">
+    <header class="sd-hero" data-tone="${toneOf(step.phase)}">
       <div class="sd-hero-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
              stroke-linecap="round" stroke-linejoin="round">${iconForPhase(step.phase)}</svg>
@@ -182,6 +182,24 @@ export function renderStepPage(state, stepId) {
                  (r) =>
                    `<li><a href="#/step/${esc(r.id)}" data-sd="goto">${esc(r.title)}</a>
                      <span class="sd-rel-status is-${r.status}">${STATUS_LABELS[r.status]}</span></li>`
+               )
+               .join('')}</ul>
+           </section>`
+        : ''
+    }
+
+    ${
+      content?.links?.length
+        ? `<section class="sd-section sec-src">
+             <h2>Проверить в первоисточнике</h2>
+             <p class="sd-muted">Инструмент работает офлайн и ничего не сверяет сам. Суммы и сроки
+               меняются ежегодно — открывайте официальную страницу:</p>
+             <ul class="sd-links">${content.links
+               .map(
+                 (l) =>
+                   `<li><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}
+                      <span class="sd-ext" aria-hidden="true">↗</span>
+                      <span class="sr-only">(откроется в новой вкладке)</span></a></li>`
                )
                .join('')}</ul>
            </section>`

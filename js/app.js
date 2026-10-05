@@ -19,8 +19,9 @@ import * as store from './store.js';
 import { buildRoadmap, normalizeRoadmap, applyOperations } from './plan.js';
 import { initTimeline, createTimelineUiState, refreshRoadmap, initFilters } from './timeline.js';
 import { heuristicReply } from './assistant.js';
-import { exportPlan, importPlanFile, downloadRaw, printPlan, exportCalendar } from './exporter.js';
+import { exportPdf, exportPlan, importPlanFile, downloadRaw, exportCalendar } from './exporter.js';
 import { renderStepPage, initStepView, currentStepId } from './stepview.js';
+import { renderCalendar, initCalendar, createCalendarUiState } from './calendar.js';
 
 const state = {
   profile: null,
@@ -30,6 +31,7 @@ const state = {
   filter: 'all',
   streaming: false,
   ui: createTimelineUiState(),
+  calendarUi: createCalendarUiState(),
 };
 
 /* ------------------------------------------------------------------ */
@@ -107,12 +109,13 @@ function showScreen(name) {
   $('#screenRoadmap').hidden = name !== 'roadmap';
   $('#screenRecovery').hidden = name !== 'recovery';
   $('#screenStep').hidden = name !== 'step';
+  $('#screenCalendar').hidden = name !== 'calendar';
 
   // Необязательный доступ: если разметка и скрипт разошлись (браузер
   // держит в кэше старый app.js после правки index.html), пусть пропадёт
   // одна кнопка, а не весь интерфейс вместе с экранами.
-  const hasPlan = name === 'roadmap' || name === 'step';
-  for (const id of ['#resetBtn', '#exportBtn', '#printBtn', '#calendarBtn']) {
+  const hasPlan = name === 'roadmap' || name === 'step' || name === 'calendar';
+  for (const id of ['#resetBtn', '#pdfBtn', '#backupBtn', '#calendarLink']) {
     const el = $(id);
     if (el) el.hidden = !hasPlan;
   }
@@ -129,6 +132,13 @@ function showScreen(name) {
  */
 function applyRoute() {
   if (!state.roadmap) return;
+
+  if (location.hash === '#/calendar') {
+    renderCalendar(state);
+    showScreen('calendar');
+    window.scrollTo(0, 0);
+    return;
+  }
 
   const stepId = currentStepId();
   if (stepId) {
@@ -270,7 +280,7 @@ function initForm() {
   });
 
   $('#resetBtn').addEventListener('click', () => {
-    if (!confirm('Начать заново? Текущий план и переписка будут потеряны. Если хотите сохранить их — сначала скачайте план (кнопка «Скачать план»).')) return;
+    if (!confirm('Начать заново? Текущий план и переписка будут потеряны. Если хотите сохранить их — сначала нажмите «Резервная копия».')) return;
     store.clearState();
     location.reload();
   });
@@ -321,16 +331,25 @@ function initPrintExpand() {
 }
 
 function initExportImport() {
-  $('#exportBtn').addEventListener('click', () => exportPlan(state));
-  $('#printBtn').addEventListener('click', () => printPlan());
+  // PDF — чтобы читать и печатать; .json — чтобы восстановить план на другом
+  // устройстве. Это разные задачи, и вторая нужна: план существует только в
+  // localStorage одного браузера, и импорт без экспорта был бы бесполезен.
+  $('#backupBtn').addEventListener('click', () => exportPlan(state));
 
-  $('#calendarBtn').addEventListener('click', () => {
-    const count = exportCalendar(state);
-    if (!count) {
-      showBanner(
-        'В плане нет ни одного шага с проставленной датой, поэтому в календарь нечего добавить. ' +
-          'Укажите дату начала учёбы при создании плана или проставьте сроки вручную кнопкой «Изменить» на карточке шага.'
-      );
+  $('#pdfBtn').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    const label = btn.textContent;
+    // Шрифты тянутся по сети при первом нажатии — без обратной связи кнопка
+    // выглядит нажатой впустую.
+    btn.disabled = true;
+    btn.textContent = 'Готовлю…';
+    try {
+      await exportPdf(state);
+    } catch (err) {
+      showBanner(`Не удалось собрать PDF: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = label;
     }
   });
 
@@ -571,6 +590,22 @@ initTimeline(state, () => persistState());
 initStepView(state, () => {
   persistState();
   renderAll();
+});
+// Календарь двигает те же дедлайны, что и список: после его правок нужно
+// сохранить и пересобрать таймлайн.
+initCalendar(state, {
+  onChange: () => {
+    persistState();
+    renderAll();
+  },
+  onExportIcs: () => {
+    if (!exportCalendar(state)) {
+      showBanner(
+        'В плане нет ни одного шага с проставленной датой, поэтому в файл календаря нечего выгружать. ' +
+          'Укажите месяц начала учёбы при создании плана или проставьте сроки вручную кнопкой «Изменить» на карточке шага.'
+      );
+    }
+  },
 });
 initRouter();
 initChat();

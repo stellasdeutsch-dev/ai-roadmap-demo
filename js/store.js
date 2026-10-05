@@ -13,7 +13,9 @@
 
 import { normalizeChecklist } from './plan.js';
 
-export const STORAGE_KEY = 'ai-roadmap-demo-state';
+import { SITE } from './site.js';
+
+export const STORAGE_KEY = SITE.storageKey;
 export const SCHEMA_VERSION = 2;
 
 /* ------------------------------------------------------------------ */

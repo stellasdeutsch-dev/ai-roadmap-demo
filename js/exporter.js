@@ -8,6 +8,18 @@
  */
 
 import { SCHEMA_VERSION } from './store.js';
+import { SITE } from './site.js';
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 function downloadText(text, filename, mime = 'application/json') {
   const blob = new Blob([text], { type: mime });
@@ -37,13 +49,13 @@ export function exportPlan(state) {
     pendingProposal: state.pendingProposal,
   };
   const name = (state.profile?.program || 'plan').replace(/[^\p{L}\p{N}_-]+/gu, '-').slice(0, 40);
-  downloadText(JSON.stringify(payload, null, 2), `ai-roadmap-${name}-${todayStamp()}.json`);
+  downloadText(JSON.stringify(payload, null, 2), `${SITE.filePrefix}-${name}-${todayStamp()}.json`);
 }
 
 /** Скачивает сырой, возможно повреждённый, текст из localStorage as-is —
  *  для экрана восстановления, когда автоматический разбор не удался. */
 export function downloadRaw(raw) {
-  downloadText(raw, `ai-roadmap-raw-${todayStamp()}.json`);
+  downloadText(raw, `${SITE.filePrefix}-raw-${todayStamp()}.json`);
 }
 
 /**
@@ -74,8 +86,16 @@ export function importPlanFile(file) {
   });
 }
 
-export function printPlan() {
-  window.print();
+/**
+ * Скачивает план как PDF. Шрифты и генератор подгружаются только сейчас,
+ * по нажатию, чтобы 80 КБ шрифтов не висели на каждом открытии страницы.
+ */
+export async function exportPdf(state) {
+  const { buildPDF, loadPdfFonts } = await import('./pdf.js');
+  const fonts = await loadPdfFonts();
+  const bytes = await buildPDF(state, fonts);
+  const name = (state.profile?.program || 'plan').replace(/[^\p{L}\p{N}_-]+/gu, '-').slice(0, 40);
+  downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `plan-${name}-${todayStamp()}.pdf`);
 }
 
 /* ------------------------------------------------------------------ */
@@ -158,7 +178,7 @@ export function buildICS(roadmap, { reminderDays = 7 } = {}) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//AI Roadmap//Admission planner//RU',
+    `PRODID:${SITE.icsProdId}`,
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${icsEscape(roadmap?.title || 'План поступления')}`,
@@ -175,7 +195,7 @@ export function buildICS(roadmap, { reminderDays = 7 } = {}) {
 
     lines.push(
       'BEGIN:VEVENT',
-      `UID:${step.id}-${icsDate(step.deadline)}@ai-roadmap`,
+      `UID:${step.id}-${icsDate(step.deadline)}@${SITE.icsUidDomain}`,
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${icsDate(step.deadline)}`,
       `DTEND;VALUE=DATE:${icsDate(shiftISODate(step.deadline, 1))}`,
@@ -211,6 +231,6 @@ export function exportCalendar(state) {
   if (!count) return 0;
 
   const name = (state.profile?.program || 'plan').replace(/[^\p{L}\p{N}_-]+/gu, '-').slice(0, 40);
-  downloadText(buildICS(roadmap), `ai-roadmap-${name}-${todayStamp()}.ics`, 'text/calendar;charset=utf-8');
+  downloadText(buildICS(roadmap), `${SITE.filePrefix}-${name}-${todayStamp()}.ics`, 'text/calendar;charset=utf-8');
   return count;
 }

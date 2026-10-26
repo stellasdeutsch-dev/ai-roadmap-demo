@@ -8,6 +8,8 @@
  * эти функции, а не мутируют шаги напрямую.
  */
 
+import { nextStartWithRunway, toMonthValue } from './utils.js';
+
 export const PHASES = [
   { id: 'offer', label: 'Подтверждение offer', tone: 'indigo' },
   { id: 'scholarship', label: 'Стипендия / грант', tone: 'amber' },
@@ -75,6 +77,24 @@ function parseIntakeMonth(value) {
   // бы на месяц. Неправильное значение — это «дата неизвестна», а не догадка.
   if (m < 1 || m > 12 || y < 2000 || y > 2100) return null;
   return new Date(y, m - 1, 1, 12, 0, 0);
+}
+
+const isKazakhstan = (profile) => /казах|қазақ|kazakh/i.test(`${profile.citizenship ?? ''} ${profile.country ?? ''}`);
+
+/**
+ * Поле «начало учёбы» — два списка, месяц и год, вместо <input type="month">:
+ * в Safari и Firefox на компьютере month выглядит как пустое текстовое поле
+ * без подсказки формата. В профиле по-прежнему одна строка "YYYY-MM".
+ */
+export function formToProfile(entries) {
+  const { intakeMonth = '', intakeYear = '', ...rest } = entries;
+  rest.intakeDate = intakeMonth && intakeYear ? `${intakeYear}-${intakeMonth}` : '';
+  return rest;
+}
+
+export function profileToForm(profile) {
+  const [y = '', m = ''] = /^\d{4}-\d{2}$/.test(profile.intakeDate ?? '') ? profile.intakeDate.split('-') : [];
+  return { ...profile, intakeYear: y, intakeMonth: m };
 }
 
 /** Дата за leadDays до начала учёбы, либо '' если intake неизвестен. */
@@ -203,7 +223,11 @@ export function buildRoadmap(profile) {
             why: 'Требования и дедлайны конкурса зависят от конкретного фонда. Пропущенный дедлайн подачи обычно означает перенос на следующий набор.',
             estimateDays: 14,
             checklist: cl('Уточнить список документов у фонда', 'Собрать пакет документов', 'Подать заявку до дедлайна фонда'),
-            ...dl(120, 'сроки уточняйте у вашего стипендиального фонда — они не совпадают с дедлайнами вуза'),
+            // Дедлайн конкурса объявляет фонд, и с датой начала учёбы он не
+            // связан: «за 120 дней до начала» было бы выдуманной датой,
+            // которой человек поверил бы. Срок вписывает сам человек.
+            deadline: '',
+            deadlineNote: 'дедлайн объявляет фонд — впишите его в шаг, когда узнаете',
           },
         ]
       : []),
@@ -360,13 +384,15 @@ export function buildRoadmap(profile) {
         : []),
       ...(hasScholarship ? ['Какие документы и сроки требует ваш стипендиальный фонд для отдельного конкурса?'] : []),
     ],
-    contacts: [
-      {
-        label: 'Шаблон',
-        value: 'Не привязан к конкретному вузу — контакты приёмной комиссии здесь не подставляются',
-        url: '',
-      },
-    ],
+    // Панель «Контакты» раньше состояла из одного извинения, что контактов
+    // нет. Теперь она появляется, только когда есть что показать.
+    contacts:
+      hasScholarship && isKazakhstan(profile)
+        ? [
+            { label: '«Болашак» — официальный сайт', value: 'bolashak.gov.kz', url: 'https://bolashak.gov.kz/ru' },
+            { label: 'Bolashak Way — неофициальный разбор шагов', value: 'stellasdeutsch-dev.github.io', url: 'https://stellasdeutsch-dev.github.io/bolashak-way/' },
+          ]
+        : [],
   };
 }
 
@@ -404,34 +430,6 @@ export function normalizeRoadmap(roadmap, previous = null) {
     contacts: roadmap.contacts ?? [],
     notes: roadmap.notes ?? '',
     updatedAt: new Date().toISOString(),
-  };
-}
-
-/** total/done — целыми шагами (для подписи «N из M готово»).
- *  percent — по пунктам чек-листа (шаг без чек-листа считается за 1 пункт),
- *  поэтому частично отмеченный чек-лист двигает прогресс-бар, а не ждёт
- *  полного закрытия шага. */
-export function progressOf(roadmap) {
-  const steps = roadmap?.steps ?? [];
-  const doneSteps = steps.filter((s) => s.status === 'done').length;
-
-  let totalUnits = 0;
-  let doneUnits = 0;
-  for (const s of steps) {
-    const items = s.checklist ?? [];
-    if (items.length) {
-      totalUnits += items.length;
-      doneUnits += items.filter((i) => i.done).length;
-    } else {
-      totalUnits += 1;
-      doneUnits += s.status === 'done' ? 1 : 0;
-    }
-  }
-
-  return {
-    total: steps.length,
-    done: doneSteps,
-    percent: totalUnits ? Math.round((doneUnits / totalUnits) * 100) : 0,
   };
 }
 
@@ -540,4 +538,27 @@ export function applyOperations(roadmap, operations) {
 
 export function isValidStatus(status) {
   return STATUSES.includes(status);
+}
+
+/**
+ * Анкета для кнопки «Посмотреть пример». Месяц начала учёбы — ближайший
+ * сентябрь, до которого хватает разбега (общее правило в utils.js), чтобы
+ * пример показывал план в работе, а не простыню просроченных шагов.
+ */
+export function sampleProfile() {
+  return {
+    name: 'Аружан',
+    citizenship: 'Казахстан',
+    educationLevel: 'бакалавриат',
+    specialty: 'Информационные системы',
+    city: 'Алматы',
+    country: 'Казахстан',
+    university: 'Delft University of Technology',
+    program: 'MSc Computer Science',
+    degreeLevel: 'магистратура',
+    intakeDate: toMonthValue(nextStartWithRunway(8)),
+    offerStatus: 'received',
+    funding: 'scholarship',
+    notes: 'Нужно общежитие, загранпаспорт истекает в мае.',
+  };
 }

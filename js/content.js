@@ -186,6 +186,10 @@ export const STEP_CONTENT = {
         ],
       },
     ],
+    links: [
+      { label: '«Болашак» — официальный сайт (для граждан Казахстана)', url: 'https://bolashak.gov.kz/ru' },
+      { label: 'Bolashak Way — неофициальный разбор шагов «Болашака»', url: 'https://stellasdeutsch-dev.github.io/bolashak-way/' },
+    ],
   },
 
   'research-proposal': {
